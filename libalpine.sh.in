@@ -56,13 +56,13 @@ init_tmpdir() {
 }
 
 pkg_inst() {
-	eecho "WARNING: pkg_inst is deprecated. Use 'apk add --quiet' in script"
-	[ -z "$NOCOMMIT" ] && apk add --quiet $*
+	eecho "WARNING: pkg_inst is deprecated. Use 'spk add --quiet' in script"
+	[ -z "$NOCOMMIT" ] && spk add --quiet $*
 }
 
 pkg_deinst() {
-	eecho "WARNING: pkg_deinst is deprecated. Use 'apk del --quiet' in script"
-	[ -z "$NOCOMMIT" ] && apk del --quiet $*
+	eecho "WARNING: pkg_deinst is deprecated. Use 'spk del --quiet' in script"
+	[ -z "$NOCOMMIT" ] && spk del --quiet $*
 }
 
 default_read() {

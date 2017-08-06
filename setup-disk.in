@@ -12,7 +12,7 @@ VARFS=${VARFS:-ext4}
 SYSROOT=${SYSROOT:-/mnt}
 
 # machine arch
-ARCH=$(apk --print-arch)
+ARCH=$(spk --print-arch)
 
 in_list() {
 	local i="$1"
@@ -118,7 +118,7 @@ unpack_apkovl() {
 		return 0
 	fi
 
-	apk add --quiet openssl
+	spk add --quiet openssl
 
 	if ! openssl list-cipher-commands | grep "^$suffix$" > /dev/null; then
 		errstr="Cipher $suffix is not supported"
@@ -217,7 +217,7 @@ setup_grub() {
 	# create grub config
 	cat > "$mnt"/boot/grub/grub.cfg  <<- EOF
 	set timeout=2
-	menuentry "Alpine Linux" {
+	menuentry "S2/OS" {
 		linux   /boot/vmlinuz $modules root=$root $kernel_opts
 		initrd  /boot/initramfs-$KERNEL_FLAVOR
 	}
@@ -314,8 +314,8 @@ install_mounted_root() {
 		ovlfiles=/tmp/ovlfiles
 		lbu package - | tar -C "$mnt" -zxv > "$ovlfiles"
 		# comment out local repositories
-		if [ -f "$mnt"/etc/apk/repositories ]; then
-			sed -i -e 's:^/:#/:' "$mnt"/etc/apk/repositories
+		if [ -f "$mnt"/etc/spk/repositories ]; then
+			sed -i -e 's:^/:#/:' "$mnt"/etc/spk/repositories
 		fi
 	else
 		echo "Restoring backup from $APKOVL to $rootdev..."
@@ -366,19 +366,16 @@ install_mounted_root() {
                 *) setup_syslinux "$mnt" "$root" "$modules" "$kernel_opts" "$bootdev";;
         esac
 
-	# apk reads config from target root so we need to copy the config
-	mkdir -p "$mnt"/etc/apk/keys/
-	cp /etc/apk/keys/* "$mnt"/etc/apk/keys/
+	# spk reads config from target root so we need to copy the config
+	mkdir -p "$mnt"/etc/spk/keys/
+	cp /etc/spk/keys/* "$mnt"/etc/spk/keys/
 
 	local apkflags="--initdb --quiet --progress --update-cache --clean-protected"
-	local pkgs=$(grep -h -v -w sfdisk "$mnt"/etc/apk/world \
+	local pkgs=$(grep -h -v -w sfdisk "$mnt"/etc/spk/world \
 		"$mnt"/var/lib/apk/world 2>/dev/null)
 
-	pkgs="$pkgs acct linux-$KERNEL_FLAVOR alpine-base"
-	if [ "$(rc --sys)" = "XEN0" ]; then
-		pkgs="$pkgs xen-hypervisor"
-	fi
-	local repos=$(sed -e 's/\#.*//' /etc/apk/repositories)
+	pkgs="$pkgs acct linux-$KERNEL_FLAVOR s2-base"
+	local repos=$(sed -e 's/\#.*//' /etc/spk/repositories)
 	local repoflags=
 	for i in $repos; do
 		repoflags="$repoflags --repository $i"
@@ -386,7 +383,7 @@ install_mounted_root() {
 
 	chroot_caps=$(set_grsec chroot_caps 0)
 	init_chroot_mounts "$mnt"
-	apk add --root "$mnt" $apkflags --overlay-from-stdin \
+	spk add --root "$mnt" $apkflags --overlay-from-stdin \
 		$repoflags $pkgs <$ovlfiles
 	local ret=$?
 	cleanup_chroot_mounts "$mnt"
@@ -503,7 +500,7 @@ init_progs() {
 		btrfs) fstools="$fstools btrfs-progs";;
 		esac
 	done
-	apk add --quiet sfdisk $lvmpkg $raidpkg $fstools $@
+	spk add --quiet sfdisk $lvmpkg $raidpkg $fstools $@
 }
 
 show_disk_info() {
@@ -1008,7 +1005,7 @@ usage() {
 		usage: setup-disk [-hLqrv] [-k kernelflavor] [-m MODE] [-o apkovl] [-s SWAPSIZE]
 		                  [MOUNTPOINT | DISKDEV...]
 
-		Install alpine on harddisk.
+		Install S2 on harddisk.
 
 		If MOUNTPOINT is specified, then do a traditional disk install with MOUNTPOINT
 		as root.
@@ -1065,7 +1062,7 @@ shift $(( $OPTIND - 1))
 
 if [ -d "$1" ]; then
 	# install to given mounted root
-	apk add --quiet syslinux
+	spk add --quiet syslinux
 	install_mounted_root "${1%/}" \
 		&& echo "You might need fix the MBR to be able to boot" >&2
 	exit $?

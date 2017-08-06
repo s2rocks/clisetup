@@ -25,7 +25,7 @@ while getopts "hc:" opt; do
 done
 
 if [ "$sshdchoice" = "" ]; then
-	echo -n "Which SSH server? ('openssh', 'dropbear' or 'none') [openssh] "
+	echo -n "Which SSH server? ('openssh', or 'none') [openssh] "
 	default_read sshdchoice "openssh"
 fi
 
@@ -34,16 +34,12 @@ if [ "$sshdchoice" = "none" ]; then
 fi
 
 pkgs="$sshdchoice"
-if [ "$sshdchoice" = "openssh" ] && apk info --quiet --installed acf-core; then
-	pkgs="$pkgs acf-openssh"
-fi
 
-apk add --quiet $pkgs
+spk add --quiet $pkgs
 
 svc=
 case "$sshdchoice" in
 	openssh) svc=sshd;;
-	dropbear) svc=dropbear;;
 esac
 
 if [ -n "$svc" ]; then

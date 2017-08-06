@@ -6,9 +6,9 @@ PREFIX=
 
 usage() {
 	cat <<-__EOF__
-		usage: setup-apkcache [-h] [DIR]
+		usage: setup-spkcache [-h] [DIR]
 
-		Setup apk caching.
+		Setup spk caching.
 
 		If DIR is not specified user will be asked for location.
 
@@ -105,15 +105,8 @@ shift $(( $OPTIND - 1 ))
 
 # try auto detetect what we suggest
 suggestion=
-if [ -L "${ROOT}"etc/apk/cache ]; then
-	suggestion=$(readlink "${ROOT}"etc/apk/cache)
-fi
-
-if [ -z "$suggestion" ] && [ -f "${ROOT}"etc/lbu/lbu.conf ]; then
-	. "${ROOT}"etc/lbu/lbu.conf
-	if [ -n "$LBU_MEDIA" ]; then
-		suggestion=/media/$LBU_MEDIA/cache
-	fi
+if [ -L "${ROOT}"etc/spk/cache ]; then
+	suggestion=$(readlink "${ROOT}"etc/spk/cache)
 fi
 
 if [ -z "$suggestion" ] && [ -L /dev/usbdisk ]; then
@@ -130,7 +123,7 @@ fi
 cachedir=$1
 
 while [ -z "$cachedir" ]; do
-	echo -n "Enter apk cache directory (or '?' or 'none') [$suggestion]: "
+	echo -n "Enter spk cache directory (or '?' or 'none') [$suggestion]: "
 	default_read cachedir $suggestion
 	if [ "$cachedir" = "?" ]; then
 		apk_cache_help
@@ -155,11 +148,11 @@ elif is_mounted_ro $mount; then
 fi
 
 mkdir -p $cachedir
-if [ -L "${ROOT}"etc/apk/cache ]; then
-	rm -f "${ROOT}"etc/apk/cache
+if [ -L "${ROOT}"etc/spk/cache ]; then
+	rm -f "${ROOT}"etc/spk/cache
 fi
-mkdir -p "${ROOT}"etc/apk
-ln -s $cachedir "${ROOT}"etc/apk/cache
+mkdir -p "${ROOT}"etc/spk
+ln -s $cachedir "${ROOT}"etc/spk/cache
 
 case "$cleanup" in
 	umount) umount $mount;;

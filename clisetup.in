@@ -1,6 +1,6 @@
 #!/bin/sh
 
-PROGRAM=setup-alpine
+PROGRAM=clisetup
 VERSION=@VERSION@
 
 PREFIX=
@@ -22,9 +22,9 @@ is_qemu() {
 
 usage() {
 	cat <<-__EOF__
-		usage: setup-alpine [-ahq] [-c FILE | -f FILE]
+		usage: clisetup [-ahq] [-c FILE | -f FILE]
 
-		Setup Alpine Linux
+		Setup S2/OS
 
 		options:
 		 -a  Create Alpine Linux overlay file
@@ -44,7 +44,7 @@ while getopts "aef:c:hq" opt ; do
 		c) CREATEANSWERFILE="$OPTARG";;
 		e) empty_root_password=1;;
 		h) usage;;
-		q) quick=1; APKREPOSOPTS="-1"; HOSTNAMEOPTS="alpine";;
+		q) quick=1; APKREPOSOPTS="-1"; HOSTNAMEOPTS="S2";;
 		*) usage;;
 	esac
 done
@@ -72,8 +72,8 @@ if [ "$CREATEANSWERFILE" != "" ]; then
 		# Use US layout with US variant
 		KEYMAPOPTS="us us"
 
-		# Set hostname to alpine-test
-		HOSTNAMEOPTS="-n alpine-test"
+		# Set hostname to s2-test
+		HOSTNAMEOPTS="-n s2-test"
 
 		# Contents of /etc/network/interfaces
 		INTERFACESOPTS="auto lo
@@ -81,7 +81,7 @@ if [ "$CREATEANSWERFILE" != "" ]; then
 
 		auto eth0
 		iface eth0 inet dhcp
-		    hostname alpine-test
+		    hostname s2-test
 		"
 
 		# Search domain of example.com, Google public nameserver
@@ -115,10 +115,10 @@ if [ "$CREATEANSWERFILE" != "" ]; then
 fi
 
 if [ "$ARCHIVE" ] ; then
-	echo "Creating an Alpine overlay"
+	echo "Creating an S2 overlay"
 	init_tmpdir ROOT
 else
-	PKGADD="apk add"
+	PKGADD="spk add"
 fi
 
 if [ "$rc_sys" != LXC ]; then
@@ -186,7 +186,7 @@ if [ -r "$ROOT/etc/profile" ]; then
 	. "$ROOT/etc/profile"
 fi
 
-$PREFIX/sbin/setup-apkrepos ${APKREPOSOPTS}
+$PREFIX/sbin/setup-spkrepos ${APKREPOSOPTS}
 
 # lets stop here if in "quick mode"
 if [ "$quick" = 1 ]; then
@@ -197,10 +197,6 @@ $PREFIX/sbin/setup-sshd ${SSHDOPTS}
 
 if ! is_qemu && [ "$rc_sys" != "LXC" ]; then
 	$PREFIX/sbin/setup-ntp ${NTPOPTS}
-fi
-
-if is_xen_dom0; then
-	setup-xen-dom0
 fi
 
 if [ "$rc_sys" = "LXC" ]; then
@@ -215,8 +211,8 @@ diskmode=$(cat /tmp/alpine-install-diskmode.out 2>/dev/null)
 # setup lbu and apk cache unless installed sys on disk
 if [ "$diskmode" != "sys" ]; then
 	$PREFIX/sbin/setup-lbu ${LBUOPTS}
-	$PREFIX/sbin/setup-apkcache ${APKCACHEOPTS}
-	if [ -L /etc/apk/cache ]; then
-		apk cache sync
+	$PREFIX/sbin/setup-spkcache ${APKCACHEOPTS}
+	if [ -L /etc/spk/cache ]; then
+		spk cache sync
 	fi
 fi

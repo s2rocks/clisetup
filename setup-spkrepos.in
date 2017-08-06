@@ -1,12 +1,12 @@
 #!/bin/sh
 
-PROGRAM=setup-apkrepos
+PROGRAM=setup-spkrepos
 PREFIX=
 
 . $PREFIX/lib/libalpine.sh
 
 if [ "$ROOT" != "/" ]; then
-	apk_root_opt="--root $ROOT"
+	spk_root_opt="--root $ROOT"
 fi
 
 get_hostname_from_url() {
@@ -102,8 +102,8 @@ add_from_list() {
 	add_mirror "$mirror"
 }
 
-get_alpine_release() {
-	local version=$(cat "${ROOT}"etc/alpine-release 2>/dev/null)
+get_s2_release() {
+	local version=$(cat "${ROOT}"etc/s2-release 2>/dev/null)
 	case "$version" in
 		*_git*|*_alpha*) release="edge";;
 		[0-9]*.[0-9]*.[0-9]*)
@@ -145,9 +145,9 @@ edit_repositories() {
 
 usage() {
 	cat <<-__EOF__
-		usage: setup-apkrepos [-fhr] [REPO...]
+		usage: setup-spkrepos [-fhr] [REPO...]
 
-		Setup apk repositories
+		Setup spk repositories
 
 		options:
 		 -f  Detect and add fastest mirror
@@ -175,22 +175,22 @@ shift $(($OPTIND - 1))
 # main
 # install alpine-mirrors if its not already there
 to_uninstall=
-if ! apk info --quiet --installed alpine-mirrors; then
-	apk add --force --quiet --virtual .setup-apkrepos alpine-mirrors
-	to_uninstall=.setup-apkrepos
+if ! spk info --quiet --installed s2-mirrors; then
+	spk add --force --quiet --virtual .setup-spkrepos s2-mirrors
+	to_uninstall=.setup-spkrepos
 fi
 
-MIRRORS_PATH=/usr/share/alpine-mirrors/MIRRORS.txt
+MIRRORS_PATH=/usr/share/s2-mirrors/MIRRORS.txt
 if [ -z "$MIRRORS" ] && [ -r "$MIRRORS_PATH" ]; then
 	MIRRORS=$(cat $MIRRORS_PATH)
 fi
 
-APKREPOS_PATH="${ROOT}"etc/apk/repositories
+APKREPOS_PATH="${ROOT}"etc/spk/repositories
 if [ -r "$APKREPOS_PATH" ]; then
 	APKREPOS=$(cat "$APKREPOS_PATH")
 fi
 
-get_alpine_release
+get_s2_release
 default_answer=f
 changed=false
 
@@ -235,10 +235,10 @@ done
 
 if $changed; then
 	echo -n "Updating repository indexes... "
-	apk update --quiet $apk_root_opt && echo "done."
+	spk update --quiet $spk_root_opt && echo "done."
 fi
 
 # clean up
 if [ -n "$to_uninstall" ]; then
-	apk del --quiet $to_uninstall
+	spk del --quiet $to_uninstall
 fi

@@ -18,7 +18,7 @@ cleanup_mounts() {
 
 cleanup_installs() {
 	if [ -n "$uninstalls" ]; then
-		apk del --quiet syslinux
+		spk del --quiet syslinux
 	fi
 }
 
@@ -50,8 +50,8 @@ mount_srcdir() {
 		|| die "Failed to mount loopback $src"
 	umounts="$srcmnt"
 	srcdir="$srcmnt"
-	if ! [ -f "$srcdir"/.alpine-release ]; then
-		die "No .alpine-release found on image $src"
+	if ! [ -f "$srcdir"/.s2-release ]; then
+		die "No .s2-release found on image $src"
 	fi
 }
 
@@ -175,7 +175,7 @@ usage() {
 		 -f  Force overwrite existing files. Will overwrite syslinux.cfg if upgrade.
 		 -h  Show this help.
 		 -k  fix kernel and initrd name in syslinux.cfg if needed.
-		 -U  Replace current alpine_dev in syslinux.cfg with UUID if UUID found.
+		 -U  Replace current s2_dev in syslinux.cfg with UUID if UUID found.
 		 -u  Upgrade mode. Keep existing syslinux.cfg and don't run syslinux.
 		 -s  Force run syslinux, even if upgrade mode.
 		 -v  Verbose mode. Display whats going on.
@@ -393,7 +393,7 @@ fi
 echo "Making $dest bootable..."
 
 if ! [ -x "$(which syslinux)" ]; then
-	apk add --quiet syslinux || die "Failed to install syslinux"
+	spk add --quiet syslinux || die "Failed to install syslinux"
 	uninstalls="syslinux"
 fi
 

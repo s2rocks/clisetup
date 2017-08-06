@@ -25,7 +25,7 @@ MEDIA=
 MNTDIR=
 PACKAGES=
 MKINITFS_ARGS=
-REPOSITORIES_FILE=/etc/apk/repositories
+REPOSITORIES_FILE=/etc/spk/repositories
 SIGNALS="HUP INT TERM"
 TMPDIR=
 features=
@@ -53,7 +53,7 @@ usage() {
 			 -k|--apk-pubkey <key>   Include given key in initramfs
 		         -K|--hostkeys           Include host keys in initramfs
 		         -M|--media              Boot media directory layout
-		         --repositories-file <f> apk repositories file
+		         --repositories-file <f> spk repositories file
 
 	__EOF__
 	exit $1
@@ -158,7 +158,7 @@ clean_up() {
 	ignore_sigs
 
 	if [ "$SUPERUSER" ] && [ -z "$FAKEROOTKEY" ]; then
-		apk del $QUIET_OPT $VIRTUAL
+		spk del $QUIET_OPT $VIRTUAL
 	fi
 	rm -fr $TMPDIR
 }
@@ -167,7 +167,7 @@ trap clean_up EXIT $SIGNALS
 
 
 if [ "$SUPERUSER" ] && [ -z "$FAKEROOTKEY" ]; then
-	apk add $QUIET_OPT --update-cache -t $VIRTUAL mkinitfs squashfs-tools kmod
+	spk add $QUIET_OPT --update-cache -t $VIRTUAL mkinitfs squashfs-tools kmod
 fi
 
 if [ -z "$features" ]; then
@@ -176,33 +176,33 @@ fi
 
 if [ -z "$FLAVOR" ]; then
 	FLAVOR=$(uname -r | cut -d - -f 3-)
-	[ "$FLAVOR" ] || FLAVOR=vanilla
+	[ "$FLAVOR" ] || FLAVOR=s2
 fi
 
-[ "$ARCH" ] || ARCH=$(apk --print-arch)
+[ "$ARCH" ] || ARCH=$(spk --print-arch)
 
 TMPDIR=$(mktemp -d /tmp/$SCRIPT.XXXXXX)
 ROOT=$TMPDIR/root
 BOOT=$ROOT/boot
 
-_apk() {
+_spk() {
 	local cmd=$1
 	shift
 
-	apk $cmd $QUIET_OPT -p $ROOT --arch "$ARCH" \
-		--keys-dir /etc/apk/keys \
+	spk $cmd $QUIET_OPT -p $ROOT --arch "$ARCH" \
+		--keys-dir /etc/spk/keys \
 		--repositories-file "$REPOSITORIES_FILE" $*
 }
 
 extra_pkgs() {
-	local res=$(_apk search -x $1)
+	local res=$(_spk search -x $1)
 	if [ "$res" ]; then
 		echo $*
 	fi
 }
 
 # set up the root and get the APKINDEX for search
-_apk add --initdb --update-cache
+_spk add --initdb --update-cache
 
 if [ "$BUILDDIR" ]; then
 	case "$ARCH" in
@@ -222,11 +222,11 @@ else
 	fi
 	PACKAGES="$PACKAGES linux-$FLAVOR linux-firmware"
 fi
-_apk add --no-scripts alpine-base $PACKAGES
+_spk add --no-scripts alpine-base $PACKAGES
 
 if [ -n "$APK_PUBKEY" ]; then
-	mkdir -p "$ROOT"/etc/apk/keys
-	cp "$APK_PUBKEY" "$ROOT"/etc/apk/keys/
+	mkdir -p "$ROOT"/etc/spk/keys
+	cp "$APK_PUBKEY" "$ROOT"/etc/spk/keys/
 fi
 
 KVER_FLAVOR=

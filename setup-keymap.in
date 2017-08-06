@@ -84,12 +84,12 @@ select_variant() {
 }
 
 goodbye() {
-	apk del --quiet --no-progress .setup-keymap-deps
+	spk del --quiet --no-progress .setup-keymap-deps
 	exit $1
 }
 
 trap 'goodbye 1' INT
-apk add --quiet --virtual .setup-keymap-deps kbd-bkeymaps
+spk add --quiet --virtual .setup-keymap-deps kbd-bkeymaps
 
 deflayout="$1"
 defvariant="$2"
